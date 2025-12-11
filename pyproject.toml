@@ -8,6 +8,7 @@ dependencies = [
     "bcrypt==4.0.1",
     "fastapi>=0.124.2",
     "passlib>=1.7.4",
+    "pydantic[email]>=2.12.5",
     "python-dotenv>=1.2.1",
     "sqlalchemy>=2.0.45",
     "uvicorn>=0.38.0",

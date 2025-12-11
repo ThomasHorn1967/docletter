@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 
 # User Schemas
+
+
 class UserCreate(BaseModel):
     """
     Schema for creating a new user.
@@ -9,6 +11,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     api_key: str = Field(min_length=5, max_length=50)
     message: str = "Enter the initial API key for registration"
+
 
 class UserResponse(BaseModel):
     """
@@ -19,10 +22,12 @@ class UserResponse(BaseModel):
     created: datetime
     is_valid: bool
 
+
 class UserCreatedResponse(BaseModel):
     """
     Special response only used when creating a user.
     """
+    email: str
     api_key: str
     message: str = "Store this API key securely - it won't be shown again"
 

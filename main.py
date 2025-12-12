@@ -5,6 +5,7 @@ from database import get_db, engine
 from models import Base, User, Message
 import schemas
 import auth
+from datetime import datetime
 import models
 from dotenv import load_dotenv
 import os
@@ -79,3 +80,21 @@ async def root():
     }
 
 
+@app.get("/users/me", response_model=schemas.UserResponse)
+async def get_current_user_info(current_user: CurrentUser):
+    """
+    Get information about the authenticated user.
+
+    The CurrentUser dependency handles all authentication automatically.
+    If the request reaches this function, authentication succeeded.
+    """
+
+    output = schemas.UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        created=current_user.created,
+        key_expires=current_user.key_expires,
+        is_valid=current_user.is_valid
+    )
+
+    return output

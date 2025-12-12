@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 from database import get_db
 from models import User
+from datetime import datetime
 
 
 def generate_api_key() -> str:

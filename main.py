@@ -37,7 +37,6 @@ async def create_user(user: schemas.UserCreate, db: DBSession):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered"
         )
-    print(user.api_key)
     if user.api_key != INITIAL_KEY:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Initial key missing or wrong")
@@ -65,6 +64,6 @@ async def create_user(user: schemas.UserCreate, db: DBSession):
     # Return the user info AND the plain API key (only time we do this)
     output = schemas.UserCreatedResponse(
         email=db_user.email,
-        api_key=plain_api_key
+        api_key=plain_api_key,
     )
     return output

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 Base = declarative_base()
 
@@ -14,6 +14,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_api_key = Column(String, nullable=False)
+    key_expires = Column(DateTime, default=lambda: datetime.now(
+        timezone.utc) + timedelta(days=365))
     created = Column(DateTime, default=datetime.now())
     is_valid = Column(Boolean, default=True)
 

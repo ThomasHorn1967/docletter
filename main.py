@@ -5,7 +5,7 @@ from database import get_db, engine
 from models import Base, User, Message
 import schemas
 import auth
-from datetime import datetime
+from datetime import datetime, timedelta
 import models
 from dotenv import load_dotenv
 import os
@@ -36,7 +36,7 @@ async def create_user(user: schemas.UserCreate, db: DBSession):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered"
+            detail="Email/Username already registered"
         )
     if user.api_key != INITIAL_KEY:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -80,7 +80,7 @@ async def root():
     }
 
 
-@app.get("/users/me", response_model=schemas.UserResponse)
+@app.get("/users/me", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
 async def get_current_user_info(current_user: CurrentUser):
     """
     Get information about the authenticated user.
@@ -100,3 +100,42 @@ async def get_current_user_info(current_user: CurrentUser):
     return output
 
 # TODO: Renew API key
+
+
+@app.post("/users/renew", response_model=schemas.UserCreatedResponse, status_code=status.HTTP_201_CREATED)
+async def renew_API_key(user: schemas.RenewKeyCreate, db: DBSession):
+    """Renewal of API Key before it expires"""
+    # Check if username already exists
+    existing_user = db.query(User).filter(
+        User.email == user.email).first()
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email/Username not found"
+        )
+    if user.initial_key != INITIAL_KEY:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Initial key missing or wrong")
+    # Generate a new API key and hash it
+    plain_api_key = auth.generate_api_key()
+    hashed_key = auth.hash_api_key(plain_api_key)
+
+    existing_user.hashed_api_key = hashed_key
+    existing_user.key_expires = datetime.now() + timedelta(days=365)
+
+    try:
+        db.commit()
+        db.refresh(existing_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user"
+        )
+
+    # Return the user info AND the plain API key (only time we do this)
+    output = schemas.UserCreatedResponse(
+        email=existing_user.email,
+        api_key=plain_api_key
+    )
+    return output

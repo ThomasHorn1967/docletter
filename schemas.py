@@ -26,7 +26,7 @@ class UserResponse(BaseModel):
 
 class UserCreatedResponse(BaseModel):
     """
-    Special response only used when creating a user.
+    Special response only used when creating a user and requesting a new key.
     """
     email: str
     api_key: str
@@ -39,6 +39,12 @@ class MessageCreate(BaseModel):
     """Request schema for creating a message"""
     title: str = Field(..., min_length=1, max_length=200)
     body: str = Field(..., min_length=1)
+
+
+class RenewKeyCreate(BaseModel):
+    """Request new API Key"""
+    email: EmailStr
+    initial_key: str = Field(..., min_length=5, max_length=60)
 
 
 class MessageResponse(BaseModel):

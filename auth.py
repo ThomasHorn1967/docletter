@@ -46,7 +46,7 @@ async def get_current_user(
     # Check the provided API key against each user's hashed key
     for user in users:
         if verify_api_key(x_api_key, user.hashed_api_key):
-            #check if the key is expired:
+            # check if the key is expired:
             if user.key_expires <= datetime.now():
                 raise exception
             return user

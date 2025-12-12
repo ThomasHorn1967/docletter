@@ -31,7 +31,7 @@ class UserCreatedResponse(BaseModel):
     email: str
     api_key: str
     key_expires: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=365))
+        default_factory=lambda: datetime.now() + timedelta(days=365))
     message: str = "Store this API key securely - it won't be shown again"
 
 

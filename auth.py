@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 from database import get_db
 from models import User
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def generate_api_key() -> str:
@@ -39,14 +39,17 @@ async def get_current_user(
     """
     # Query active users only
     users = db.query(User).filter(User.is_valid == True).all()
-
-    # Check the provided API key against each user's hashed key
-    for user in users:
-        if verify_api_key(x_api_key, user.hashed_api_key):
-            return user
-
-    # No matching user found - authentication failed
-    raise HTTPException(
+    exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired API key"
     )
+    # Check the provided API key against each user's hashed key
+    for user in users:
+        if verify_api_key(x_api_key, user.hashed_api_key):
+            #check if the key is expired:
+            if user.key_expires <= datetime.now():
+                raise exception
+            return user
+
+    # No matching user found - authentication failed
+    raise exception

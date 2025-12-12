@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 import models
 from dotenv import load_dotenv
 import os
+
+
 load_dotenv()
 INITIAL_KEY = os.getenv("INITIAL_KEY")
 
@@ -70,38 +72,6 @@ async def create_user(user: schemas.UserCreate, db: DBSession):
     return output
 
 
-@app.get("/")
-async def root():
-    """Public endpoint - no authentication required"""
-    return {
-        "message": "API Key Authentication Demo",
-        "docs": "/docs",
-        "instructions": "Create a user at POST /users to get an API key"
-    }
-
-
-@app.get("/users/me", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
-async def get_current_user_info(current_user: CurrentUser):
-    """
-    Get information about the authenticated user.
-
-    The CurrentUser dependency handles all authentication automatically.
-    If the request reaches this function, authentication succeeded.
-    """
-
-    output = schemas.UserResponse(
-        id=current_user.id,
-        email=current_user.email,
-        created=current_user.created,
-        key_expires=current_user.key_expires,
-        is_valid=current_user.is_valid
-    )
-
-    return output
-
-# TODO: Renew API key
-
-
 @app.post("/users/renew", response_model=schemas.UserCreatedResponse, status_code=status.HTTP_201_CREATED)
 async def renew_API_key(user: schemas.RenewKeyCreate, db: DBSession):
     """Renewal of API Key before it expires"""
@@ -130,7 +100,7 @@ async def renew_API_key(user: schemas.RenewKeyCreate, db: DBSession):
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create user"
+            detail="Failed to update user"
         )
 
     # Return the user info AND the plain API key (only time we do this)
@@ -138,4 +108,22 @@ async def renew_API_key(user: schemas.RenewKeyCreate, db: DBSession):
         email=existing_user.email,
         api_key=plain_api_key
     )
+    return output
+
+# ============= Protected Endpoints =============
+
+
+@app.get("/users/me", response_model=schemas.UserResponse, status_code=status.HTTP_200_OK)
+async def get_current_user_info(current_user: CurrentUser):
+    """
+    Get information about the authenticated user.
+    """
+    output = schemas.UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        created=current_user.created,
+        key_expires=current_user.key_expires,
+        is_valid=current_user.is_valid
+    )
+
     return output

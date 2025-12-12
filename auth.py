@@ -2,6 +2,7 @@ import secrets
 import bcrypt
 from fastapi import Header, HTTPException, Depends, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from typing import Annotated
 from database import get_db
 from models import User
@@ -38,18 +39,22 @@ async def get_current_user(
     Dependency function that validates the API key and returns the current user.
     """
     # Query active users only
-    users = db.query(User).filter(User.is_valid == True).all()
-    exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired API key"
-    )
-    # Check the provided API key against each user's hashed key
-    for user in users:
-        if verify_api_key(x_api_key, user.hashed_api_key):
-            # check if the key is expired:
-            if user.key_expires <= datetime.now():
-                raise exception
-            return user
+    try:
+        users = db.query(User).filter(User.is_valid == True).all()
+        exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired API key"
+        )
+        # Check the provided API key against each user's hashed key
+        for user in users:
+            if verify_api_key(x_api_key, user.hashed_api_key):
+                # check if the key is expired:
+                if user.key_expires <= datetime.now():
+                    raise exception
+                return user
 
-    # No matching user found - authentication failed
-    raise exception
+        # No matching user found - authentication failed
+        raise exception
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"A Database error occured: {e}")

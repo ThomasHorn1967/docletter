@@ -67,3 +67,15 @@ async def create_user(user: schemas.UserCreate, db: DBSession):
         api_key=plain_api_key,
     )
     return output
+
+
+@app.get("/")
+async def root():
+    """Public endpoint - no authentication required"""
+    return {
+        "message": "API Key Authentication Demo",
+        "docs": "/docs",
+        "instructions": "Create a user at POST /users to get an API key"
+    }
+
+

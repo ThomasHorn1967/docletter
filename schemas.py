@@ -1,7 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
-from datetime import datetime, timedelta, timezone
-
-# User Schemas
+from datetime import datetime, timedelta
 
 
 class UserCreate(BaseModel):
@@ -35,16 +33,16 @@ class UserCreatedResponse(BaseModel):
     message: str = "Store this API key securely - it won't be shown again"
 
 
-class MessageCreate(BaseModel):
-    """Request schema for creating a message"""
-    title: str = Field(..., min_length=1, max_length=200)
-    body: str = Field(..., min_length=1)
-
-
 class RenewKeyCreate(BaseModel):
     """Request new API Key"""
     email: EmailStr
     initial_key: str = Field(..., min_length=5, max_length=60)
+
+
+class MessageCreate(BaseModel):
+    """Request schema for creating a message"""
+    title: str = Field(..., min_length=1, max_length=200)
+    body: str = Field(..., min_length=1)
 
 
 class MessageResponse(BaseModel):

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import Mapped, mapped_column
 
 Base = declarative_base()
 
@@ -11,12 +12,14 @@ class User(Base):
     The api_key is stored hashed for security
     """
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_api_key = Column(String, nullable=False)
-    key_expires = Column(DateTime, default=lambda: datetime.now() + timedelta(days=365))
-    created = Column(DateTime, default=datetime.now())
-    is_valid = Column(Boolean, default=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(
+        String, unique=True, index=True, nullable=False)
+    hashed_api_key: Mapped[str] = mapped_column(String, nullable=False)
+    key_expires: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now() + timedelta(days=365))
+    created: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    is_valid: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class Message(Base):
